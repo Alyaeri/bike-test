@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SM-120 Live Test V2</title>
+<title>SM-120 Bike Test V2</title>
 
 <style>
   body {
@@ -26,7 +26,24 @@
     border-radius: 12px;
   }
 
-  #connect { background: white; color: black; }
+  button:disabled {
+    opacity: 0.35;
+  }
+
+  #connect {
+    background: white;
+    color: black;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .controls button {
+    margin: 0;
+  }
 
   .stat {
     background: #222;
@@ -40,19 +57,36 @@
     font-weight: bold;
   }
 
+  .log-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 28px;
+  }
+
+  #copy {
+    width: auto;
+    display: inline-block;
+    padding: 8px 14px;
+    margin: 0;
+    font-size: 14px;
+  }
+
   pre {
     background: #222;
     padding: 12px;
     border-radius: 8px;
     white-space: pre-wrap;
     word-break: break-word;
+    max-height: 350px;
+    overflow-y: auto;
   }
 </style>
 </head>
 
 <body>
 
-<h1>🚲 SM-120 Live Test V2</h1>
+<h1>🚲 SM-120 Bike Test V2</h1>
 
 <button id="connect">CONNECT TO BIKE</button>
 
@@ -78,23 +112,56 @@
   <div class="value" id="power">—</div>
 </div>
 
-<h2>Raw data</h2>
+<h2>Resistance Test</h2>
+
+<div class="controls">
+  <button id="minus" disabled>− RESISTANCE</button>
+  <button id="plus" disabled>+ RESISTANCE</button>
+</div>
+
+<div class="log-title">
+  <h2>Raw Data</h2>
+  <button id="copy">COPY</button>
+</div>
+
 <pre id="log">Waiting...</pre>
 
 <script>
 
-const FTMS = "00001826-0000-1000-8000-00805f9b34fb";
-const BIKE_DATA = "00002ad2-0000-1000-8000-00805f9b34fb";
-const FEATURES = "00002acc-0000-1000-8000-00805f9b34fb";
-const RESISTANCE_RANGE = "00002ad6-0000-1000-8000-00805f9b34fb";
-const CONTROL_POINT = "00002ad9-0000-1000-8000-00805f9b34fb";
-const STATUS = "00002ada-0000-1000-8000-00805f9b34fb";
+const FTMS =
+  "00001826-0000-1000-8000-00805f9b34fb";
 
-const statusEl = document.getElementById("status");
-const logEl = document.getElementById("log");
+const BIKE_DATA =
+  "00002ad2-0000-1000-8000-00805f9b34fb";
+
+const FEATURES =
+  "00002acc-0000-1000-8000-00805f9b34fb";
+
+const RESISTANCE_RANGE =
+  "00002ad6-0000-1000-8000-00805f9b34fb";
+
+const CONTROL_POINT =
+  "00002ad9-0000-1000-8000-00805f9b34fb";
+
+const statusEl =
+  document.getElementById("status");
+
+const logEl =
+  document.getElementById("log");
+
+const plusButton =
+  document.getElementById("plus");
+
+const minusButton =
+  document.getElementById("minus");
+
+let controlPoint = null;
+
+let currentResistance = null;
 
 function log(text) {
   logEl.textContent += text + "\n";
+  logEl.scrollTop = logEl.scrollHeight;
   console.log(text);
 }
 
@@ -104,27 +171,74 @@ function hex(data) {
     .join(" ");
 }
 
-document.getElementById("connect").onclick = async () => {
+function parseResistanceRange(buffer) {
+
+  const data = new DataView(buffer);
+
+  if (data.byteLength < 6) {
+    return null;
+  }
+
+  return {
+    minimum: data.getInt16(0, true) / 10,
+    maximum: data.getInt16(2, true) / 10,
+    increment: data.getUint16(4, true) / 10
+  };
+}
+
+document.getElementById("copy").onclick = async () => {
+
+  try {
+
+    await navigator.clipboard.writeText(
+      logEl.textContent
+    );
+
+    document.getElementById("copy").textContent =
+      "COPIED!";
+
+    setTimeout(() => {
+      document.getElementById("copy").textContent =
+        "COPY";
+    }, 1500);
+
+  } catch (error) {
+
+    alert(
+      "Couldn't copy automatically. You can select the text manually."
+    );
+
+  }
+};
+
+document.getElementById("connect").onclick =
+async () => {
 
   try {
 
     logEl.textContent = "";
 
-    statusEl.textContent = "Looking for bike...";
+    statusEl.textContent =
+      "Looking for bike...";
 
-    const device = await navigator.bluetooth.requestDevice({
-      filters: [{ services: [FTMS] }]
-    });
+    const device =
+      await navigator.bluetooth.requestDevice({
+        filters: [{ services: [FTMS] }]
+      });
 
     log("Device: " + device.name);
 
-    statusEl.textContent = "Connecting...";
+    statusEl.textContent =
+      "Connecting...";
 
-    const server = await device.gatt.connect();
+    const server =
+      await device.gatt.connect();
 
-    const service = await server.getPrimaryService(FTMS);
+    const service =
+      await server.getPrimaryService(FTMS);
 
-    statusEl.textContent = "Connected!";
+    statusEl.textContent =
+      "Connected!";
 
     log("FTMS connected.");
 
@@ -133,17 +247,19 @@ document.getElementById("connect").onclick = async () => {
     // -------------------------
 
     const bikeData =
-      await service.getCharacteristic(BIKE_DATA);
-
-    log("Indoor Bike Data found.");
+      await service.getCharacteristic(
+        BIKE_DATA
+      );
 
     bikeData.addEventListener(
       "characteristicvaluechanged",
       event => {
 
-        const data = event.target.value;
+        const data =
+          event.target.value;
 
-        const flags = data.getUint16(0, true);
+        const flags =
+          data.getUint16(0, true);
 
         log(
           "Bike packet: " +
@@ -152,49 +268,64 @@ document.getElementById("connect").onclick = async () => {
 
         let offset = 2;
 
-        // Instantaneous speed is present unless bit 0 is set.
-        if ((flags & 0x0001) === 0 && data.byteLength >= offset + 2) {
+        // Speed
+
+        if (
+          (flags & 0x0001) === 0 &&
+          data.byteLength >= offset + 2
+        ) {
 
           const speed =
             data.getUint16(offset, true) / 100;
 
-          document.getElementById("speed").textContent =
+          document.getElementById(
+            "speed"
+          ).textContent =
             speed.toFixed(1) + " km/h";
 
           offset += 2;
         }
 
-        // Cadence present
+        // Cadence
+
         if (flags & (1 << 2)) {
 
           const rpm =
             data.getUint16(offset, true) / 2;
 
-          document.getElementById("rpm").textContent =
+          document.getElementById(
+            "rpm"
+          ).textContent =
             rpm.toFixed(1);
 
           offset += 2;
         }
 
-        // Resistance present
+        // Resistance
+
         if (flags & (1 << 5)) {
 
-          const resistance =
+          currentResistance =
             data.getInt16(offset, true) / 10;
 
-          document.getElementById("resistance").textContent =
-            resistance.toFixed(1);
+          document.getElementById(
+            "resistance"
+          ).textContent =
+            currentResistance.toFixed(1);
 
           offset += 2;
         }
 
-        // Power present
+        // Power
+
         if (flags & (1 << 6)) {
 
           const power =
             data.getInt16(offset, true);
 
-          document.getElementById("power").textContent =
+          document.getElementById(
+            "power"
+          ).textContent =
             power + " W";
 
           offset += 2;
@@ -205,7 +336,9 @@ document.getElementById("connect").onclick = async () => {
 
     await bikeData.startNotifications();
 
-    log("Listening for live bike data...");
+    log(
+      "Listening for live bike data..."
+    );
 
     // -------------------------
     // FEATURES
@@ -214,7 +347,9 @@ document.getElementById("connect").onclick = async () => {
     try {
 
       const feature =
-        await service.getCharacteristic(FEATURES);
+        await service.getCharacteristic(
+          FEATURES
+        );
 
       const value =
         await feature.readValue();
@@ -239,16 +374,41 @@ document.getElementById("connect").onclick = async () => {
 
     try {
 
-      const range =
-        await service.getCharacteristic(RESISTANCE_RANGE);
+      const rangeCharacteristic =
+        await service.getCharacteristic(
+          RESISTANCE_RANGE
+        );
 
       const value =
-        await range.readValue();
+        await rangeCharacteristic.readValue();
 
       log(
-        "RESISTANCE RANGE: " +
+        "RESISTANCE RANGE RAW: " +
         hex(value.buffer)
       );
+
+      const range =
+        parseResistanceRange(
+          value.buffer
+        );
+
+      if (range) {
+
+        log(
+          "Minimum resistance: " +
+          range.minimum
+        );
+
+        log(
+          "Maximum resistance: " +
+          range.maximum
+        );
+
+        log(
+          "Resistance increment: " +
+          range.increment
+        );
+      }
 
     } catch (e) {
 
@@ -265,20 +425,29 @@ document.getElementById("connect").onclick = async () => {
 
     try {
 
-      const control =
-        await service.getCharacteristic(CONTROL_POINT);
-
-      log("CONTROL POINT FOUND.");
+      controlPoint =
+        await service.getCharacteristic(
+          CONTROL_POINT
+        );
 
       log(
-        "Control properties: " +
-        JSON.stringify(control.properties)
+        "CONTROL POINT FOUND."
       );
+
+      log(
+        "Properties: " +
+        JSON.stringify(
+          controlPoint.properties
+        )
+      );
+
+      plusButton.disabled = false;
+      minusButton.disabled = false;
 
     } catch (e) {
 
       log(
-        "Could not access control point: " +
+        "CONTROL POINT ERROR: " +
         e.message
       );
 
@@ -290,10 +459,101 @@ document.getElementById("connect").onclick = async () => {
       "Error: " + error.message;
 
     log(
-      error.name + ": " + error.message
+      error.name +
+      ": " +
+      error.message
     );
+
   }
+
 };
+
+// -------------------------
+// RESISTANCE COMMAND
+// -------------------------
+
+async function requestResistanceChange(
+  change
+) {
+
+  if (!controlPoint) {
+    log(
+      "Control point is not available."
+    );
+    return;
+  }
+
+  if (currentResistance === null) {
+
+    log(
+      "Waiting for current resistance..."
+    );
+
+    return;
+  }
+
+  const target =
+    currentResistance + change;
+
+  log(
+    "REQUESTING RESISTANCE: " +
+    currentResistance +
+    " → " +
+    target
+  );
+
+  /*
+    FTMS Set Target Resistance Level
+
+    Op Code:
+    0x04
+
+    Parameter:
+    signed 16-bit resistance
+    in 0.1 units
+  */
+
+  const value =
+    new DataView(
+      new ArrayBuffer(3)
+    );
+
+  value.setUint8(0, 0x04);
+
+  value.setInt16(
+    1,
+    Math.round(target * 10),
+    true
+  );
+
+  try {
+
+    await controlPoint.writeValueWithResponse(
+      value
+    );
+
+    log(
+      "COMMAND SENT."
+    );
+
+  } catch (error) {
+
+    log(
+      "COMMAND FAILED: " +
+      error.name +
+      ": " +
+      error.message
+    );
+
+  }
+
+}
+
+plusButton.onclick = () =>
+  requestResistanceChange(1);
+
+minusButton.onclick = () =>
+  requestResistanceChange(-1);
 
 </script>
 
