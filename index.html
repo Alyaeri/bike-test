@@ -1,159 +1,299 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SM-120 Bluetooth Test</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SM-120 Live Test</title>
 
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      max-width: 700px;
-      margin: 0 auto;
-      padding: 30px 20px;
-      background: #111;
-      color: #fff;
-    }
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    background: #111;
+    color: white;
+    max-width: 700px;
+    margin: auto;
+    padding: 24px;
+  }
 
-    button {
-      font-size: 20px;
-      padding: 16px 24px;
-      border: 0;
-      border-radius: 12px;
-      margin: 10px 0;
-      cursor: pointer;
-    }
+  button {
+    display: block;
+    width: 100%;
+    padding: 18px;
+    margin: 12px 0;
+    font-size: 20px;
+    font-weight: bold;
+    border: 0;
+    border-radius: 12px;
+  }
 
-    #connect {
-      background: #fff;
-      color: #111;
-    }
+  #connect { background: white; color: black; }
 
-    #status {
-      font-size: 18px;
-      margin: 20px 0;
-    }
+  .stat {
+    background: #222;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 10px 0;
+  }
 
-    pre {
-      background: #222;
-      padding: 15px;
-      border-radius: 10px;
-      overflow-x: auto;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-  </style>
+  .value {
+    font-size: 36px;
+    font-weight: bold;
+  }
+
+  pre {
+    background: #222;
+    padding: 12px;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+</style>
 </head>
 
 <body>
 
-  <h1>🚲 SM-120 Bluetooth Test</h1>
+<h1>🚲 SM-120 Live Test</h1>
 
-  <p>
-    This page connects to the bike and reports the Bluetooth services
-    it exposes.
-  </p>
+<button id="connect">CONNECT TO BIKE</button>
 
-  <button id="connect">Connect to Bike</button>
+<div id="status">Not connected</div>
 
-  <div id="status">Not connected</div>
+<div class="stat">
+  <div>RPM</div>
+  <div class="value" id="rpm">—</div>
+</div>
 
-  <h2>Results</h2>
-  <pre id="output">Nothing yet.</pre>
+<div class="stat">
+  <div>Speed</div>
+  <div class="value" id="speed">—</div>
+</div>
+
+<div class="stat">
+  <div>Resistance</div>
+  <div class="value" id="resistance">—</div>
+</div>
+
+<div class="stat">
+  <div>Power</div>
+  <div class="value" id="power">—</div>
+</div>
+
+<h2>Raw data</h2>
+<pre id="log">Waiting...</pre>
 
 <script>
 
-const status = document.getElementById("status");
-const output = document.getElementById("output");
-const button = document.getElementById("connect");
+const FTMS = "00001826-0000-1000-8000-00805f9b34fb";
+const BIKE_DATA = "00002ad2-0000-1000-8000-00805f9b34fb";
+const FEATURES = "00002acc-0000-1000-8000-00805f9b34fb";
+const RESISTANCE_RANGE = "00002ad6-0000-1000-8000-00805f9b34fb";
+const CONTROL_POINT = "00002ad9-0000-1000-8000-00805f9b34fb";
+const STATUS = "00002ada-0000-1000-8000-00805f9b34fb";
 
-function log(message) {
-  output.textContent += message + "\n";
-  console.log(message);
+const statusEl = document.getElementById("status");
+const logEl = document.getElementById("log");
+
+function log(text) {
+  logEl.textContent += text + "\n";
+  console.log(text);
 }
 
-button.addEventListener("click", async () => {
+function hex(data) {
+  return [...new Uint8Array(data)]
+    .map(x => x.toString(16).padStart(2, "0"))
+    .join(" ");
+}
 
-  output.textContent = "";
-  status.textContent = "Looking for your bike...";
+document.getElementById("connect").onclick = async () => {
 
   try {
 
+    logEl.textContent = "";
+
+    statusEl.textContent = "Looking for bike...";
+
     const device = await navigator.bluetooth.requestDevice({
-      acceptAllDevices: true,
-      optionalServices: [
-        "fitness_machine",
-        "device_information",
-        "battery_service",
-        "cycling_power"
-      ]
+      filters: [{ services: [FTMS] }]
     });
 
-    log("Device found:");
-    log("Name: " + (device.name || "Unknown"));
-    log("ID: " + device.id);
+    log("Device: " + device.name);
 
-    status.textContent = "Connecting...";
+    statusEl.textContent = "Connecting...";
 
     const server = await device.gatt.connect();
 
-    status.textContent = "Connected!";
+    const service = await server.getPrimaryService(FTMS);
 
-    log("");
-    log("GATT server connected.");
-    log("");
-    log("Discovering services...");
+    statusEl.textContent = "Connected!";
 
-    const services = await server.getPrimaryServices();
+    log("FTMS connected.");
 
-    log("");
-    log("PRIMARY SERVICES FOUND: " + services.length);
-    log("");
+    // -------------------------
+    // BIKE DATA
+    // -------------------------
 
-    for (const service of services) {
+    const bikeData =
+      await service.getCharacteristic(BIKE_DATA);
 
-      log("SERVICE");
-      log("UUID: " + service.uuid);
+    log("Indoor Bike Data found.");
 
-      try {
+    bikeData.addEventListener(
+      "characteristicvaluechanged",
+      event => {
 
-        const characteristics =
-          await service.getCharacteristics();
+        const data = event.target.value;
 
-        log("Characteristics: " + characteristics.length);
+        const flags = data.getUint16(0, true);
 
-        for (const characteristic of characteristics) {
+        log(
+          "Bike packet: " +
+          hex(data.buffer)
+        );
 
-          log("  CHARACTERISTIC");
-          log("  UUID: " + characteristic.uuid);
-          log(
-            "  Properties: " +
-            JSON.stringify(characteristic.properties)
-          );
+        let offset = 2;
+
+        // Instantaneous speed is present unless bit 0 is set.
+        if ((flags & 0x0001) === 0 && data.byteLength >= offset + 2) {
+
+          const speed =
+            data.getUint16(offset, true) / 100;
+
+          document.getElementById("speed").textContent =
+            speed.toFixed(1) + " km/h";
+
+          offset += 2;
         }
 
-      } catch (error) {
+        // Cadence present
+        if (flags & (1 << 2)) {
 
-        log("  Could not inspect characteristics: " + error);
+          const rpm =
+            data.getUint16(offset, true) / 2;
+
+          document.getElementById("rpm").textContent =
+            rpm.toFixed(1);
+
+          offset += 2;
+        }
+
+        // Resistance present
+        if (flags & (1 << 5)) {
+
+          const resistance =
+            data.getInt16(offset, true) / 10;
+
+          document.getElementById("resistance").textContent =
+            resistance.toFixed(1);
+
+          offset += 2;
+        }
+
+        // Power present
+        if (flags & (1 << 6)) {
+
+          const power =
+            data.getInt16(offset, true);
+
+          document.getElementById("power").textContent =
+            power + " W";
+
+          offset += 2;
+        }
 
       }
+    );
 
-      log("");
+    await bikeData.startNotifications();
+
+    log("Listening for live bike data...");
+
+    // -------------------------
+    // FEATURES
+    // -------------------------
+
+    try {
+
+      const feature =
+        await service.getCharacteristic(FEATURES);
+
+      const value =
+        await feature.readValue();
+
+      log(
+        "FEATURES: " +
+        hex(value.buffer)
+      );
+
+    } catch (e) {
+
+      log(
+        "Could not read features: " +
+        e.message
+      );
+
     }
 
-    log("========== DONE ==========");
+    // -------------------------
+    // RESISTANCE RANGE
+    // -------------------------
+
+    try {
+
+      const range =
+        await service.getCharacteristic(RESISTANCE_RANGE);
+
+      const value =
+        await range.readValue();
+
+      log(
+        "RESISTANCE RANGE: " +
+        hex(value.buffer)
+      );
+
+    } catch (e) {
+
+      log(
+        "Could not read resistance range: " +
+        e.message
+      );
+
+    }
+
+    // -------------------------
+    // CONTROL POINT
+    // -------------------------
+
+    try {
+
+      const control =
+        await service.getCharacteristic(CONTROL_POINT);
+
+      log("CONTROL POINT FOUND.");
+
+      log(
+        "Control properties: " +
+        JSON.stringify(control.properties)
+      );
+
+    } catch (e) {
+
+      log(
+        "Could not access control point: " +
+        e.message
+      );
+
+    }
 
   } catch (error) {
 
-    status.textContent = "Error";
+    statusEl.textContent =
+      "Error: " + error.message;
 
-    log("");
-    log("ERROR:");
-    log(error.name + ": " + error.message);
-
+    log(
+      error.name + ": " + error.message
+    );
   }
-
-});
+};
 
 </script>
 
