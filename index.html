@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SM-120 Bike Test V2</title>
+
+<title>SM-120 Telemetry</title>
 
 <style>
   body {
@@ -16,18 +17,13 @@
   }
 
   button {
-    display: block;
     width: 100%;
     padding: 18px;
-    margin: 12px 0;
+    margin: 8px 0;
     font-size: 20px;
     font-weight: bold;
     border: 0;
     border-radius: 12px;
-  }
-
-  button:disabled {
-    opacity: 0.35;
   }
 
   #connect {
@@ -35,41 +31,44 @@
     color: black;
   }
 
-  .controls {
+  .grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
-  .controls button {
-    margin: 0;
+    gap: 10px;
+    margin-top: 16px;
   }
 
   .stat {
     background: #222;
     border-radius: 12px;
     padding: 16px;
-    margin: 10px 0;
+  }
+
+  .label {
+    opacity: 0.6;
+    font-size: 14px;
   }
 
   .value {
-    font-size: 36px;
+    font-size: 32px;
     font-weight: bold;
+    margin-top: 4px;
   }
 
-  .log-title {
+  .raw-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
     margin-top: 28px;
   }
 
-  #copy {
+  .copy {
     width: auto;
-    display: inline-block;
     padding: 8px 14px;
     margin: 0;
     font-size: 14px;
+    background: #333;
+    color: white;
   }
 
   pre {
@@ -80,51 +79,65 @@
     word-break: break-word;
     max-height: 350px;
     overflow-y: auto;
+    font-size: 12px;
   }
 </style>
 </head>
 
 <body>
 
-<h1>🚲 SM-120 Bike Test V2</h1>
+<h1>🚲 SM-120 Telemetry</h1>
 
 <button id="connect">CONNECT TO BIKE</button>
 
 <div id="status">Not connected</div>
 
-<div class="stat">
-  <div>RPM</div>
-  <div class="value" id="rpm">—</div>
+<div class="grid">
+
+  <div class="stat">
+    <div class="label">CADENCE</div>
+    <div class="value" id="rpm">—</div>
+  </div>
+
+  <div class="stat">
+    <div class="label">SPEED</div>
+    <div class="value" id="speed">—</div>
+  </div>
+
+  <div class="stat">
+    <div class="label">POWER</div>
+    <div class="value" id="power">—</div>
+  </div>
+
+  <div class="stat">
+    <div class="label">DISTANCE</div>
+    <div class="value" id="distance">—</div>
+  </div>
+
+  <div class="stat">
+    <div class="label">ENERGY</div>
+    <div class="value" id="energy">—</div>
+  </div>
+
+  <div class="stat">
+    <div class="label">ELAPSED</div>
+    <div class="value" id="elapsed">—</div>
+  </div>
+
 </div>
 
-<div class="stat">
-  <div>Speed</div>
-  <div class="value" id="speed">—</div>
-</div>
+<div class="raw-header">
 
-<div class="stat">
-  <div>Resistance</div>
-  <div class="value" id="resistance">—</div>
-</div>
+  <h2>Diagnostic Log</h2>
 
-<div class="stat">
-  <div>Power</div>
-  <div class="value" id="power">—</div>
-</div>
+  <button class="copy" id="copy">
+    COPY
+  </button>
 
-<h2>Resistance Test</h2>
-
-<div class="controls">
-  <button id="minus" disabled>− RESISTANCE</button>
-  <button id="plus" disabled>+ RESISTANCE</button>
-</div>
-
-<div class="log-title">
-  <h2>Raw Data</h2>
-  <button id="copy">COPY</button>
 </div>
 
 <pre id="log">Waiting...</pre>
+
 
 <script>
 
@@ -140,79 +153,290 @@ const FEATURES =
 const RESISTANCE_RANGE =
   "00002ad6-0000-1000-8000-00805f9b34fb";
 
+const STATUS =
+  "00002ada-0000-1000-8000-00805f9b34fb";
+
 const CONTROL_POINT =
   "00002ad9-0000-1000-8000-00805f9b34fb";
 
-const statusEl =
-  document.getElementById("status");
 
 const logEl =
   document.getElementById("log");
 
-const plusButton =
-  document.getElementById("plus");
+const statusEl =
+  document.getElementById("status");
 
-const minusButton =
-  document.getElementById("minus");
 
-let controlPoint = null;
+function log(message) {
 
-let currentResistance = null;
+  logEl.textContent +=
+    message + "\n";
 
-function log(text) {
-  logEl.textContent += text + "\n";
-  logEl.scrollTop = logEl.scrollHeight;
-  console.log(text);
+  logEl.scrollTop =
+    logEl.scrollHeight;
+
+  console.log(message);
 }
 
-function hex(data) {
-  return [...new Uint8Array(data)]
-    .map(x => x.toString(16).padStart(2, "0"))
+
+function hex(buffer) {
+
+  return [...new Uint8Array(buffer)]
+    .map(x =>
+      x.toString(16).padStart(2, "0"))
     .join(" ");
 }
 
-function parseResistanceRange(buffer) {
 
-  const data = new DataView(buffer);
+function formatTime(seconds) {
 
-  if (data.byteLength < 6) {
-    return null;
-  }
+  seconds =
+    Math.floor(seconds);
 
-  return {
-    minimum: data.getInt16(0, true) / 10,
-    maximum: data.getInt16(2, true) / 10,
-    increment: data.getUint16(4, true) / 10
-  };
+  const minutes =
+    Math.floor(seconds / 60);
+
+  const secs =
+    seconds % 60;
+
+  return (
+    String(minutes).padStart(2, "0") +
+    ":" +
+    String(secs).padStart(2, "0")
+  );
 }
 
-document.getElementById("copy").onclick = async () => {
 
-  try {
+/*
+  Parse FTMS Indoor Bike Data.
 
-    await navigator.clipboard.writeText(
-      logEl.textContent
-    );
+  The first two bytes are flags.
 
-    document.getElementById("copy").textContent =
-      "COPIED!";
+  We intentionally decode only fields
+  that the packet actually says are present.
+*/
 
-    setTimeout(() => {
-      document.getElementById("copy").textContent =
-        "COPY";
-    }, 1500);
+function parseBikeData(data) {
 
-  } catch (error) {
+  const flags =
+    data.getUint16(0, true);
 
-    alert(
-      "Couldn't copy automatically. You can select the text manually."
-    );
+  let offset = 2;
 
+
+  // -------------------------
+  // SPEED
+  // -------------------------
+
+  if (!(flags & 0x0001)) {
+
+    if (offset + 2 <= data.byteLength) {
+
+      const speed =
+        data.getUint16(offset, true) / 100;
+
+      document.getElementById(
+        "speed"
+      ).textContent =
+        speed.toFixed(1) + " km/h";
+
+      offset += 2;
+    }
   }
-};
 
-document.getElementById("connect").onclick =
-async () => {
+
+  // -------------------------
+  // AVERAGE SPEED
+  // -------------------------
+
+  if (flags & 0x0002) {
+
+    offset += 2;
+  }
+
+
+  // -------------------------
+  // CADENCE
+  // -------------------------
+
+  if (flags & 0x0004) {
+
+    if (offset + 2 <= data.byteLength) {
+
+      const cadence =
+        data.getUint16(offset, true) / 2;
+
+      document.getElementById(
+        "rpm"
+      ).textContent =
+        cadence.toFixed(1);
+
+      offset += 2;
+    }
+  }
+
+
+  // -------------------------
+  // AVERAGE CADENCE
+  // -------------------------
+
+  if (flags & 0x0008) {
+
+    offset += 2;
+  }
+
+
+  // -------------------------
+  // TOTAL DISTANCE
+  // -------------------------
+
+  if (flags & 0x0010) {
+
+    if (offset + 3 <= data.byteLength) {
+
+      const distance =
+        data.getUint8(offset) |
+        (data.getUint8(offset + 1) << 8) |
+        (data.getUint8(offset + 2) << 16);
+
+      document.getElementById(
+        "distance"
+      ).textContent =
+        (distance / 100).toFixed(2) + " km";
+
+      offset += 3;
+    }
+  }
+
+
+  // -------------------------
+  // RESISTANCE
+  // -------------------------
+
+  if (flags & 0x0020) {
+
+    if (offset + 2 <= data.byteLength) {
+
+      const resistance =
+        data.getInt16(offset, true) / 10;
+
+      log(
+        "Reported resistance: " +
+        resistance
+      );
+
+      offset += 2;
+    }
+  }
+
+
+  // -------------------------
+  // POWER
+  // -------------------------
+
+  if (flags & 0x0040) {
+
+    if (offset + 2 <= data.byteLength) {
+
+      const power =
+        data.getInt16(offset, true);
+
+      document.getElementById(
+        "power"
+      ).textContent =
+        power + " W";
+
+      offset += 2;
+    }
+  }
+
+
+  // -------------------------
+  // ENERGY
+  // -------------------------
+
+  if (flags & 0x0080) {
+
+    if (offset + 2 <= data.byteLength) {
+
+      const totalEnergy =
+        data.getUint16(offset, true);
+
+      document.getElementById(
+        "energy"
+      ).textContent =
+        totalEnergy + " kJ";
+
+      offset += 2;
+    }
+
+    /*
+      If the More Data flag is set,
+      additional energy fields follow.
+    */
+
+    if (flags & 0x0100) {
+
+      offset += 2;
+    }
+
+    if (flags & 0x0200) {
+
+      offset += 2;
+    }
+  }
+
+
+  // -------------------------
+  // HEART RATE
+  // -------------------------
+
+  if (flags & 0x0400) {
+
+    offset += 1;
+  }
+
+
+  // -------------------------
+  // METABOLIC EQUIVALENT
+  // -------------------------
+
+  if (flags & 0x0800) {
+
+    offset += 1;
+  }
+
+
+  // -------------------------
+  // ELAPSED TIME
+  // -------------------------
+
+  if (flags & 0x1000) {
+
+    if (offset + 2 <= data.byteLength) {
+
+      const seconds =
+        data.getUint16(offset, true);
+
+      document.getElementById(
+        "elapsed"
+      ).textContent =
+        formatTime(seconds);
+
+      offset += 2;
+    }
+  }
+
+}
+
+
+/*
+  CONNECT
+*/
+
+document.getElementById(
+  "connect"
+).onclick = async () => {
 
   try {
 
@@ -221,26 +445,121 @@ async () => {
     statusEl.textContent =
       "Looking for bike...";
 
+
     const device =
       await navigator.bluetooth.requestDevice({
-        filters: [{ services: [FTMS] }]
+
+        filters: [
+          {
+            services: [FTMS]
+          }
+        ]
+
       });
 
-    log("Device: " + device.name);
+
+    log(
+      "Device: " +
+      device.name
+    );
+
 
     statusEl.textContent =
       "Connecting...";
 
+
     const server =
       await device.gatt.connect();
 
+
     const service =
-      await server.getPrimaryService(FTMS);
+      await server.getPrimaryService(
+        FTMS
+      );
+
 
     statusEl.textContent =
-      "Connected!";
+      "CONNECTED";
 
-    log("FTMS connected.");
+
+    log(
+      "FTMS connected."
+    );
+
+
+    // -------------------------
+    // FEATURES
+    // -------------------------
+
+    try {
+
+      const characteristic =
+        await service.getCharacteristic(
+          FEATURES
+        );
+
+      const value =
+        await characteristic.readValue();
+
+      log(
+        "FEATURES: " +
+        hex(value.buffer)
+      );
+
+    } catch (error) {
+
+      log(
+        "Features unavailable: " +
+        error.message
+      );
+
+    }
+
+
+    // -------------------------
+    // RESISTANCE RANGE
+    // -------------------------
+
+    try {
+
+      const characteristic =
+        await service.getCharacteristic(
+          RESISTANCE_RANGE
+        );
+
+      const value =
+        await characteristic.readValue();
+
+
+      const minimum =
+        value.getInt16(0, true) / 10;
+
+      const maximum =
+        value.getInt16(2, true) / 10;
+
+      const increment =
+        value.getUint16(4, true) / 10;
+
+
+      log(
+        "RESISTANCE RANGE: " +
+        minimum +
+        " → " +
+        maximum +
+        " (" +
+        increment +
+        " increments)"
+      );
+
+    } catch (error) {
+
+      log(
+        "Resistance range unavailable: " +
+        error.message
+      );
+
+    }
+
 
     // -------------------------
     // BIKE DATA
@@ -251,6 +570,7 @@ async () => {
         BIKE_DATA
       );
 
+
     bikeData.addEventListener(
       "characteristicvaluechanged",
       event => {
@@ -258,166 +578,72 @@ async () => {
         const data =
           event.target.value;
 
-        const flags =
-          data.getUint16(0, true);
 
-        log(
-          "Bike packet: " +
-          hex(data.buffer)
-        );
+        parseBikeData(data);
 
-        let offset = 2;
 
-        // Speed
-
-        if (
-          (flags & 0x0001) === 0 &&
-          data.byteLength >= offset + 2
-        ) {
-
-          const speed =
-            data.getUint16(offset, true) / 100;
-
-          document.getElementById(
-            "speed"
-          ).textContent =
-            speed.toFixed(1) + " km/h";
-
-          offset += 2;
-        }
-
-        // Cadence
-
-        if (flags & (1 << 2)) {
-
-          const rpm =
-            data.getUint16(offset, true) / 2;
-
-          document.getElementById(
-            "rpm"
-          ).textContent =
-            rpm.toFixed(1);
-
-          offset += 2;
-        }
-
-        // Resistance
-
-        if (flags & (1 << 5)) {
-
-          currentResistance =
-            data.getInt16(offset, true) / 10;
-
-          document.getElementById(
-            "resistance"
-          ).textContent =
-            currentResistance.toFixed(1);
-
-          offset += 2;
-        }
-
-        // Power
-
-        if (flags & (1 << 6)) {
-
-          const power =
-            data.getInt16(offset, true);
-
-          document.getElementById(
-            "power"
-          ).textContent =
-            power + " W";
-
-          offset += 2;
-        }
+        /*
+          Only log every packet if you
+          need it later. For now we keep
+          the diagnostic log manageable.
+        */
 
       }
     );
+
 
     await bikeData.startNotifications();
 
+
     log(
-      "Listening for live bike data..."
+      "Live bike data notifications enabled."
     );
 
-    // -------------------------
-    // FEATURES
-    // -------------------------
-
-    try {
-
-      const feature =
-        await service.getCharacteristic(
-          FEATURES
-        );
-
-      const value =
-        await feature.readValue();
-
-      log(
-        "FEATURES: " +
-        hex(value.buffer)
-      );
-
-    } catch (e) {
-
-      log(
-        "Could not read features: " +
-        e.message
-      );
-
-    }
 
     // -------------------------
-    // RESISTANCE RANGE
+    // STATUS
     // -------------------------
 
     try {
 
-      const rangeCharacteristic =
+      const characteristic =
         await service.getCharacteristic(
-          RESISTANCE_RANGE
+          STATUS
         );
 
-      const value =
-        await rangeCharacteristic.readValue();
 
-      log(
-        "RESISTANCE RANGE RAW: " +
-        hex(value.buffer)
+      await characteristic
+        .startNotifications();
+
+
+      characteristic.addEventListener(
+        "characteristicvaluechanged",
+        event => {
+
+          log(
+            "STATUS: " +
+            hex(
+              event.target.value.buffer
+            )
+          );
+
+        }
       );
 
-      const range =
-        parseResistanceRange(
-          value.buffer
-        );
-
-      if (range) {
-
-        log(
-          "Minimum resistance: " +
-          range.minimum
-        );
-
-        log(
-          "Maximum resistance: " +
-          range.maximum
-        );
-
-        log(
-          "Resistance increment: " +
-          range.increment
-        );
-      }
-
-    } catch (e) {
 
       log(
-        "Could not read resistance range: " +
-        e.message
+        "Fitness Machine Status enabled."
+      );
+
+    } catch (error) {
+
+      log(
+        "Status unavailable: " +
+        error.message
       );
 
     }
+
 
     // -------------------------
     // CONTROL POINT
@@ -425,38 +651,34 @@ async () => {
 
     try {
 
-      controlPoint =
+      const characteristic =
         await service.getCharacteristic(
           CONTROL_POINT
         );
 
+
       log(
-        "CONTROL POINT FOUND."
+        "Control Point detected."
       );
 
       log(
-        "Properties: " +
-        JSON.stringify(
-          controlPoint.properties
-        )
+        "NO CONTROL COMMANDS WILL BE SENT."
       );
 
-      plusButton.disabled = false;
-      minusButton.disabled = false;
-
-    } catch (e) {
+    } catch (error) {
 
       log(
-        "CONTROL POINT ERROR: " +
-        e.message
+        "Control Point unavailable: " +
+        error.message
       );
 
     }
 
+
   } catch (error) {
 
     statusEl.textContent =
-      "Error: " + error.message;
+      "Error";
 
     log(
       error.name +
@@ -468,92 +690,44 @@ async () => {
 
 };
 
-// -------------------------
-// RESISTANCE COMMAND
-// -------------------------
 
-async function requestResistanceChange(
-  change
-) {
+/*
+  COPY LOG
+*/
 
-  if (!controlPoint) {
-    log(
-      "Control point is not available."
-    );
-    return;
-  }
-
-  if (currentResistance === null) {
-
-    log(
-      "Waiting for current resistance..."
-    );
-
-    return;
-  }
-
-  const target =
-    currentResistance + change;
-
-  log(
-    "REQUESTING RESISTANCE: " +
-    currentResistance +
-    " → " +
-    target
-  );
-
-  /*
-    FTMS Set Target Resistance Level
-
-    Op Code:
-    0x04
-
-    Parameter:
-    signed 16-bit resistance
-    in 0.1 units
-  */
-
-  const value =
-    new DataView(
-      new ArrayBuffer(3)
-    );
-
-  value.setUint8(0, 0x04);
-
-  value.setInt16(
-    1,
-    Math.round(target * 10),
-    true
-  );
+document.getElementById(
+  "copy"
+).onclick = async () => {
 
   try {
 
-    await controlPoint.writeValueWithResponse(
-      value
+    await navigator.clipboard.writeText(
+      logEl.textContent
     );
 
-    log(
-      "COMMAND SENT."
-    );
+    const button =
+      document.getElementById("copy");
+
+    button.textContent =
+      "COPIED!";
+
+    setTimeout(() => {
+
+      button.textContent =
+        "COPY";
+
+    }, 1500);
 
   } catch (error) {
 
-    log(
-      "COMMAND FAILED: " +
-      error.name +
-      ": " +
+    alert(
+      "Copy failed: " +
       error.message
     );
 
   }
 
-}
-
-plusButton.onclick = () =>
-  requestResistanceChange(1);
-
-minusButton.onclick = () =>
-  requestResistanceChange(-1);
+};
 
 </script>
 
