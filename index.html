@@ -2,179 +2,180 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
-<title>SM-120 Full Diagnostic</title>
+<title>SM-120 Final Bike Lab</title>
 
 <style>
-
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
-  font-family: system-ui, sans-serif;
+  margin: 0;
+  padding: 16px;
   background: #101010;
-  color: white;
-  max-width: 760px;
-  margin: auto;
-  padding: 18px;
+  color: #fff;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-h1 {
-  margin-bottom: 6px;
+main {
+  max-width: 760px;
+  margin: auto;
 }
+
+h1 { margin: 0 0 6px; }
+h2 { margin-top: 0; }
 
 .subtitle {
   opacity: .65;
-  margin-bottom: 20px;
-}
-
-button {
-  width: 100%;
-  padding: 20px;
-  margin: 8px 0;
-  border: 0;
-  border-radius: 14px;
-  font-size: 21px;
-  font-weight: 700;
-}
-
-#connect {
-  background: white;
-  color: black;
-}
-
-#copy {
-  background: #333;
-  color: white;
+  margin-bottom: 18px;
 }
 
 .card {
   background: #202020;
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 18px;
   margin: 14px 0;
 }
 
-.step {
-  border-left: 5px solid #555;
+button {
+  width: 100%;
+  min-height: 64px;
+  margin: 7px 0;
+  border: 0;
+  border-radius: 15px;
+  background: #eee;
+  color: #111;
+  font-size: 20px;
+  font-weight: 750;
 }
 
-.step.active {
-  border-left-color: white;
+button.secondary {
+  background: #333;
+  color: #fff;
 }
 
-.step.complete {
-  border-left-color: #777;
-  opacity: .75;
+button.danger {
+  background: #5a2525;
+  color: #fff;
 }
 
-.step h2 {
-  margin-top: 0;
+button:disabled {
+  opacity: .35;
 }
 
-.instruction {
-  font-size: 21px;
-  line-height: 1.35;
+.status {
+  background: #292929;
+  padding: 14px;
+  border-radius: 12px;
+  margin: 12px 0;
+  font-size: 17px;
 }
 
 .big {
-  font-size: 42px;
-  font-weight: 800;
   text-align: center;
-  margin: 15px 0;
+  font-size: 48px;
+  font-weight: 850;
+  margin: 12px 0;
 }
 
-.progress {
-  height: 14px;
-  background: #333;
-  border-radius: 20px;
-  overflow: hidden;
-  margin-top: 12px;
-}
-
-.progress-bar {
-  height: 100%;
-  width: 0%;
-  background: white;
-  transition: width .2s;
+.instructions {
+  font-size: 21px;
+  line-height: 1.45;
 }
 
 .stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 9px;
 }
 
 .stat {
   background: #292929;
   border-radius: 12px;
-  padding: 14px;
+  padding: 13px;
 }
 
 .label {
+  font-size: 12px;
   opacity: .55;
-  font-size: 13px;
 }
 
 .value {
-  font-size: 28px;
-  font-weight: 750;
+  font-size: 27px;
+  font-weight: 800;
 }
 
-.status {
-  padding: 14px;
-  background: #292929;
-  border-radius: 12px;
-  margin: 12px 0;
-}
-
-pre {
-  background: #181818;
-  border-radius: 10px;
-  padding: 12px;
-  max-height: 300px;
-  overflow-y: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-size: 12px;
-}
-
-.hidden {
+.step {
   display: none;
 }
 
-.success {
-  font-size: 26px;
-  font-weight: bold;
+.step.active {
+  display: block;
 }
 
+.progress {
+  height: 12px;
+  background: #333;
+  border-radius: 20px;
+  overflow: hidden;
+  margin: 15px 0;
+}
+
+.progress > div {
+  height: 100%;
+  width: 0%;
+  background: white;
+}
+
+.notice {
+  padding: 13px;
+  border-radius: 12px;
+  background: #292929;
+  margin: 12px 0;
+}
+
+.success {
+  font-size: 27px;
+  font-weight: 850;
+}
+
+pre {
+  background: #171717;
+  padding: 12px;
+  border-radius: 12px;
+  max-height: 360px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 11px;
+}
+
+.small {
+  font-size: 14px;
+  opacity: .65;
+}
 </style>
 </head>
 
 <body>
 
-<h1>🚲 SM-120 Full Diagnostic</h1>
+<main>
+
+<h1>🚲 SM-120 Final Bike Lab</h1>
 
 <div class="subtitle">
-One final test. Follow the instructions and don't worry about the technical stuff.
+One last diagnostic session. Follow the instructions — the page will do the rest.
 </div>
 
-<button id="connect">
-CONNECT TO BIKE
-</button>
+<button id="connect">CONNECT TO BIKE</button>
 
-<div class="status" id="status">
+<div id="connectionStatus" class="status">
 Not connected
 </div>
 
-
-<!-- LIVE STATS -->
-
 <div class="card">
-
-<h2>Live Bike</h2>
+<h2>LIVE DATA</h2>
 
 <div class="stats">
 
@@ -184,13 +185,13 @@ Not connected
 </div>
 
 <div class="stat">
-<div class="label">SPEED</div>
-<div class="value" id="speed">—</div>
+<div class="label">POWER</div>
+<div class="value" id="power">—</div>
 </div>
 
 <div class="stat">
-<div class="label">POWER</div>
-<div class="value" id="power">—</div>
+<div class="label">SPEED</div>
+<div class="value" id="speed">—</div>
 </div>
 
 <div class="stat">
@@ -199,203 +200,239 @@ Not connected
 </div>
 
 <div class="stat">
-<div class="label">ENERGY</div>
-<div class="value" id="energy">—</div>
+<div class="label">RESISTANCE</div>
+<div class="value" id="resistance">—</div>
 </div>
 
 <div class="stat">
-<div class="label">ELAPSED</div>
-<div class="value" id="elapsed">—</div>
+<div class="label">SESSION TIME</div>
+<div class="value" id="sessionTime">00:00</div>
 </div>
 
 </div>
-
 </div>
-
-
-<!-- TEST INSTRUCTIONS -->
-
-<div id="tests">
 
 
 <!-- STEP 1 -->
 
-<div class="card step active" id="step1">
+<section id="step1" class="card step active">
 
-<h2>1️⃣ Normal riding</h2>
+<h2>1️⃣ Get ready</h2>
 
-<div class="instruction">
+<div class="instructions">
 
-Ride normally for <strong>30 seconds</strong>.
+Put the bike somewhere comfortable.
 
-Don't worry about speed. Just ride at the pace
-that feels comfortable to you.
+Make sure the resistance is at whatever level you normally use.
 
-</div>
-
-<div class="big" id="timer1">
-30
-</div>
-
-<div class="progress">
-<div class="progress-bar" id="progress1"></div>
-</div>
+We're going to record the bike's baseline before doing anything.
 
 </div>
+
+<button id="baselineButton">
+CAPTURE BASELINE
+</button>
+
+</section>
 
 
 <!-- STEP 2 -->
 
-<div class="card step hidden" id="step2">
+<section id="step2" class="card step">
 
-<h2>2️⃣ Stop</h2>
+<h2>2️⃣ Resistance sweep</h2>
 
-<div class="instruction">
+<div class="instructions">
 
-🛑 Stop pedalling completely.
+Now we'll capture the bike at known resistance levels.
 
-Stay still until the test detects that you've stopped.
+<strong>
+Change the resistance using the bike/app when instructed.
+</strong>
+
+The page will capture the bike's raw packets for several seconds.
 
 </div>
 
-<div class="big" id="stopStatus">
+<div class="notice" id="resistanceInstruction">
+Set resistance to <strong>1</strong>, then press capture.
+</div>
+
+<button id="captureResistance">
+CAPTURE RESISTANCE
+</button>
+
+<div class="status" id="resistanceResult">
 Waiting...
 </div>
 
-</div>
+</section>
 
 
 <!-- STEP 3 -->
 
-<div class="card step hidden" id="step3">
+<section id="step3" class="card step">
 
-<h2>3️⃣ Ride again</h2>
+<h2>3️⃣ More resistance levels</h2>
 
-<div class="instruction">
+<div class="instructions">
 
-Start pedalling normally again.
+We'll do the remaining levels.
 
-Ride for <strong>20 seconds</strong>.
-
-</div>
-
-<div class="big" id="timer3">
-20
-</div>
-
-<div class="progress">
-<div class="progress-bar" id="progress3"></div>
-</div>
+For each one, set the resistance physically/app first, then press the button.
 
 </div>
+
+<div class="big" id="resistanceTarget">5</div>
+
+<button id="captureResistance2">
+CAPTURE CURRENT LEVEL
+</button>
+
+<div class="status" id="resistanceResult2">
+Waiting...
+</div>
+
+</section>
 
 
 <!-- STEP 4 -->
 
-<div class="card step hidden" id="step4">
+<section id="step4" class="card step">
 
-<h2>4️⃣ 🔥 PUSH</h2>
+<h2>4️⃣ Normal riding</h2>
 
-<div class="instruction">
+<div class="instructions">
 
-For <strong>15 seconds</strong>, ride noticeably harder
-than your normal pace.
+Ride normally for <strong>30 seconds</strong>.
 
-Don't hurt yourself — we're just looking for a clear
-increase in effort.
+Don't change the resistance.
 
 </div>
 
-<div class="big" id="timer4">
-15
-</div>
+<div class="big" id="normalTimer">30</div>
 
 <div class="progress">
-<div class="progress-bar" id="progress4"></div>
+<div id="normalProgress"></div>
 </div>
 
-<div class="status">
-
-Normal power:
-<strong id="normalPower">—</strong>
-
-<br><br>
-
-Current power:
-<strong id="pushPower">—</strong>
-
-<br><br>
-
-<span id="effortResult">
-Waiting for push...
-</span>
-
-</div>
-
-</div>
+</section>
 
 
 <!-- STEP 5 -->
 
-<div class="card step hidden" id="step5">
+<section id="step5" class="card step">
 
-<h2>5️⃣ Stop again</h2>
+<h2>5️⃣ Stop</h2>
 
-<div class="instruction">
+<div class="instructions">
 
-🛑 Stop pedalling completely.
+Stop pedalling completely.
 
-Wait for the bike to register zero movement.
+We'll watch what happens to cadence, power and speed.
+
+</div>
+
+<div class="big" id="stopIndicator">
+WAITING
+</div>
+
+</section>
+
+
+<!-- STEP 6 -->
+
+<section id="step6" class="card step">
+
+<h2>6️⃣ Hard effort</h2>
+
+<div class="instructions">
+
+Now ride noticeably harder for <strong>15 seconds</strong>.
+
+Don't hurt yourself. We only need a clear increase over your normal effort.
+
+</div>
+
+<div class="big" id="hardTimer">15</div>
+
+<div class="progress">
+<div id="hardProgress"></div>
+</div>
+
+<div class="status" id="hardResult">
+Waiting...
+</div>
+
+</section>
+
+
+<!-- STEP 7 -->
+
+<section id="step7" class="card step">
+
+<h2>7️⃣ Stop again</h2>
+
+<div class="instructions">
+
+Stop pedalling completely again.
+
+We'll capture the final stopped state.
 
 </div>
 
 <div class="big" id="finalStop">
-Waiting...
+WAITING
 </div>
 
-</div>
+</section>
 
 
 <!-- COMPLETE -->
 
-<div class="card hidden" id="complete">
+<section id="complete" class="card step">
 
 <div class="success">
-
-🎉 TEST COMPLETE
-
+🎉 BIKE TEST COMPLETE
 </div>
 
-<p class="instruction">
+<p class="instructions">
 
-Excellent. You've collected everything we need.
+That's everything I need.
 
-You can now copy the results and come back to ChatGPT.
+Press the button below and bring the results back to ChatGPT.
 
 </p>
 
-<button id="copy">
-
-COPY RESULTS
-
+<button id="copyResults">
+COPY ALL RESULTS
 </button>
 
+<div id="copyStatus" class="notice"></div>
+
+</section>
+
+
+<div class="card">
+
+<h2>Diagnostics</h2>
+
+<div id="wakeStatus" class="status">
+Checking screen wake lock...
 </div>
-
-</div>
-
-
-<h2>Diagnostic Log</h2>
 
 <pre id="log">Waiting for connection...</pre>
+
+</div>
+
+</main>
 
 
 <script>
 
-
-/* =========================================
-   BLUETOOTH UUIDS
-========================================= */
+/* =====================================================
+   UUIDS
+===================================================== */
 
 const FTMS =
 "00001826-0000-1000-8000-00805f9b34fb";
@@ -416,78 +453,206 @@ const CONTROL_POINT =
 "00002ad9-0000-1000-8000-00805f9b34fb";
 
 
-/* =========================================
+/* =====================================================
    STATE
-========================================= */
+===================================================== */
 
-let connected = false;
+let device = null;
+let server = null;
+let service = null;
 
 let currentRPM = 0;
 let currentPower = 0;
 let currentSpeed = 0;
 let currentDistance = 0;
+let currentResistance = null;
 
-let normalPowerSamples = [];
-let pushPowerSamples = [];
+let sessionStarted = null;
 
-let testRunning = false;
+let rawPackets = [];
+let statusPackets = [];
+
+let baselineCapture = [];
+let resistanceCaptures = [];
+
+let normalPower = [];
+let hardPower = [];
+
+let wakeLock = null;
+
+let resistanceTargets = [1,5,10,15,20,25,30,32];
+let resistanceIndex = 0;
 
 
-/* =========================================
+/* =====================================================
    ELEMENTS
-========================================= */
+===================================================== */
 
 const logEl =
 document.getElementById("log");
 
-const statusEl =
-document.getElementById("status");
 
-
-/* =========================================
-   LOGGING
-========================================= */
+/* =====================================================
+   LOG
+===================================================== */
 
 function log(message) {
 
-  logEl.textContent +=
-  message + "\n";
+  logEl.textContent += message + "\n";
 
   logEl.scrollTop =
-  logEl.scrollHeight;
+    logEl.scrollHeight;
 
   console.log(message);
 }
 
 
-/* =========================================
+/* =====================================================
    HEX
-========================================= */
+===================================================== */
 
 function hex(buffer) {
 
   return [...new Uint8Array(buffer)]
-  .map(x =>
-    x.toString(16).padStart(2,"0"))
-  .join(" ");
+    .map(
+      x => x.toString(16).padStart(2,"0")
+    )
+    .join(" ");
 
 }
 
 
-/* =========================================
-   TIME
-========================================= */
+/* =====================================================
+   STEP NAVIGATION
+===================================================== */
+
+function showStep(number) {
+
+  document
+    .querySelectorAll(".step")
+    .forEach(x => x.classList.remove("active"));
+
+  const target =
+    document.getElementById("step" + number);
+
+  if (target) {
+
+    target.classList.add("active");
+
+    target.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+
+  }
+
+}
+
+
+/* =====================================================
+   SCREEN WAKE LOCK
+===================================================== */
+
+async function requestWakeLock() {
+
+  if (!("wakeLock" in navigator)) {
+
+    document.getElementById("wakeStatus")
+      .textContent =
+      "⚠️ Screen wake lock isn't supported by this browser.";
+
+    return;
+
+  }
+
+  try {
+
+    wakeLock =
+      await navigator.wakeLock.request("screen");
+
+    document.getElementById("wakeStatus")
+      .textContent =
+      "🔒 SCREEN WILL STAY AWAKE ✓";
+
+    wakeLock.addEventListener(
+      "release",
+      () => {
+
+        document.getElementById("wakeStatus")
+          .textContent =
+          "⚠️ Screen wake lock released.";
+
+      }
+    );
+
+  } catch (error) {
+
+    document.getElementById("wakeStatus")
+      .textContent =
+      "⚠️ Couldn't keep screen awake: "
+      + error.message;
+
+  }
+
+}
+
+
+document.addEventListener(
+"visibilitychange",
+async () => {
+
+  if (
+    document.visibilityState === "visible"
+  ) {
+
+    await requestWakeLock();
+
+  }
+
+});
+
+
+/* =====================================================
+   SESSION TIMER
+===================================================== */
+
+function startSessionTimer() {
+
+  if (!sessionStarted) {
+
+    sessionStarted = Date.now();
+
+  }
+
+  function tick() {
+
+    if (!sessionStarted) return;
+
+    const seconds =
+      Math.floor(
+        (Date.now() - sessionStarted) / 1000
+      );
+
+    document.getElementById("sessionTime")
+      .textContent =
+      formatTime(seconds);
+
+    requestAnimationFrame(tick);
+
+  }
+
+  tick();
+
+}
+
 
 function formatTime(seconds) {
 
-  seconds =
-  Math.floor(seconds);
-
   const minutes =
-  Math.floor(seconds / 60);
+    Math.floor(seconds / 60);
 
   const secs =
-  seconds % 60;
+    seconds % 60;
 
   return (
     String(minutes).padStart(2,"0")
@@ -498,41 +663,76 @@ function formatTime(seconds) {
 }
 
 
-/* =========================================
-   UPDATE LIVE DISPLAY
-========================================= */
+/* =====================================================
+   LIVE DISPLAY
+===================================================== */
 
-function updateStats() {
+function updateDisplay() {
 
   document.getElementById("rpm")
-  .textContent =
-  currentRPM.toFixed(1);
-
-  document.getElementById("speed")
-  .textContent =
-  currentSpeed.toFixed(1) + " km/h";
+    .textContent =
+    currentRPM.toFixed(1);
 
   document.getElementById("power")
-  .textContent =
-  Math.round(currentPower) + " W";
+    .textContent =
+    Math.round(currentPower) + " W";
+
+  document.getElementById("speed")
+    .textContent =
+    currentSpeed.toFixed(1) + " km/h";
 
   document.getElementById("distance")
-  .textContent =
-  currentDistance < 1000
-  ? Math.round(currentDistance) + " m"
-  : (currentDistance / 1000).toFixed(2) + " km";
+    .textContent =
+    currentDistance < 1000
+    ? Math.round(currentDistance) + " m"
+    : (currentDistance / 1000).toFixed(2) + " km";
+
+  document.getElementById("resistance")
+    .textContent =
+    currentResistance === null
+    ? "?"
+    : currentResistance;
 
 }
 
 
-/* =========================================
-   PARSE BIKE DATA
-========================================= */
+/* =====================================================
+   BIKE DATA PARSER
+===================================================== */
 
 function parseBikeData(data) {
 
+  const raw =
+    new Uint8Array(
+      data.buffer.slice(
+        data.byteOffset,
+        data.byteOffset + data.byteLength
+      )
+    );
+
+  const rawHex =
+    [...raw]
+      .map(
+        x => x.toString(16).padStart(2,"0")
+      )
+      .join(" ");
+
+  rawPackets.push({
+    time: Date.now(),
+    bytes: rawHex
+  });
+
+  if (rawPackets.length > 1000) {
+    rawPackets.shift();
+  }
+
+  log("BIKE: " + rawHex);
+
+
+  if (data.byteLength < 2) return;
+
   const flags =
-  data.getUint16(0,true);
+    data.getUint16(0,true);
 
   let offset = 2;
 
@@ -544,7 +744,7 @@ function parseBikeData(data) {
     if (offset + 2 <= data.byteLength) {
 
       currentSpeed =
-      data.getUint16(offset,true) / 100;
+        data.getUint16(offset,true) / 100;
 
       offset += 2;
 
@@ -556,9 +756,7 @@ function parseBikeData(data) {
   /* AVERAGE SPEED */
 
   if (flags & 0x0002) {
-
     offset += 2;
-
   }
 
 
@@ -569,7 +767,7 @@ function parseBikeData(data) {
     if (offset + 2 <= data.byteLength) {
 
       currentRPM =
-      data.getUint16(offset,true) / 2;
+        data.getUint16(offset,true) / 2;
 
       offset += 2;
 
@@ -581,9 +779,7 @@ function parseBikeData(data) {
   /* AVERAGE CADENCE */
 
   if (flags & 0x0008) {
-
     offset += 2;
-
   }
 
 
@@ -594,11 +790,11 @@ function parseBikeData(data) {
     if (offset + 3 <= data.byteLength) {
 
       currentDistance =
-      data.getUint8(offset)
-      |
-      (data.getUint8(offset+1) << 8)
-      |
-      (data.getUint8(offset+2) << 16);
+        data.getUint8(offset)
+        |
+        (data.getUint8(offset+1) << 8)
+        |
+        (data.getUint8(offset+2) << 16);
 
       offset += 3;
 
@@ -613,13 +809,8 @@ function parseBikeData(data) {
 
     if (offset + 2 <= data.byteLength) {
 
-      const resistance =
-      data.getInt16(offset,true) / 10;
-
-      log(
-        "Reported resistance: "
-        + resistance
-      );
+      currentResistance =
+        data.getInt16(offset,true) / 10;
 
       offset += 2;
 
@@ -635,7 +826,7 @@ function parseBikeData(data) {
     if (offset + 2 <= data.byteLength) {
 
       currentPower =
-      data.getInt16(offset,true);
+        data.getInt16(offset,true);
 
       offset += 2;
 
@@ -644,197 +835,287 @@ function parseBikeData(data) {
   }
 
 
-  /* ENERGY */
+  updateDisplay();
 
-  if (flags & 0x0080) {
 
-    if (offset + 2 <= data.byteLength) {
+  /* CAPTURE TEST DATA */
 
-      const energy =
-      data.getUint16(offset,true);
+  const activeStep =
+    document.querySelector(".step.active");
 
-      document.getElementById("energy")
-      .textContent =
-      energy + " kJ";
+  if (activeStep?.id === "step4") {
 
-      offset += 2;
-
-    }
+    normalPower.push(currentPower);
 
   }
 
+  if (activeStep?.id === "step6") {
 
-  /* HEART RATE */
-
-  if (flags & 0x0400) {
-
-    offset += 1;
-
-  }
-
-
-  /* METABOLIC */
-
-  if (flags & 0x0800) {
-
-    offset += 1;
-
-  }
-
-
-  /* ELAPSED */
-
-  if (flags & 0x1000) {
-
-    if (offset + 2 <= data.byteLength) {
-
-      const elapsed =
-      data.getUint16(offset,true);
-
-      document.getElementById("elapsed")
-      .textContent =
-      formatTime(elapsed);
-
-      offset += 2;
-
-    }
-
-  }
-
-
-  updateStats();
-
-
-  /* TEST DATA COLLECTION */
-
-  if (testRunning) {
-
-    if (currentPower > 0) {
-
-      if (
-        document
-        .getElementById("step1")
-        .classList.contains("active")
-      ) {
-
-        normalPowerSamples.push(
-          currentPower
-        );
-
-      }
-
-      if (
-        document
-        .getElementById("step4")
-        .classList.contains("active")
-      ) {
-
-        pushPowerSamples.push(
-          currentPower
-        );
-
-        document.getElementById(
-          "pushPower"
-        ).textContent =
-        Math.round(currentPower)
-        + " W";
-
-      }
-
-    }
+    hardPower.push(currentPower);
 
   }
 
 }
 
 
-/* =========================================
-   SHOW STEP
-========================================= */
+/* =====================================================
+   STATUS PACKETS
+===================================================== */
 
-function showStep(number) {
+function handleStatus(event) {
 
-  for (
-    let i = 1;
-    i <= 5;
-    i++
-  ) {
+  const bytes =
+    hex(event.target.value.buffer);
 
-    const step =
+  statusPackets.push({
+    time: Date.now(),
+    bytes
+  });
+
+  log("STATUS: " + bytes);
+
+}
+
+
+/* =====================================================
+   CAPTURE RESISTANCE
+===================================================== */
+
+function captureResistance() {
+
+  const target =
+    resistanceTargets[resistanceIndex];
+
+  const now =
+    Date.now();
+
+  const capture = {
+
+    requestedLevel: target,
+
+    capturedAt: now,
+
+    telemetry: {
+
+      rpm: currentRPM,
+
+      power: currentPower,
+
+      speed: currentSpeed,
+
+      distance: currentDistance,
+
+      resistance: currentResistance
+
+    },
+
+    packets:
+      rawPackets
+        .filter(
+          p =>
+            now - p.time < 5000
+        )
+        .map(x => x.bytes),
+
+    status:
+      statusPackets
+        .filter(
+          p =>
+            now - p.time < 5000
+        )
+        .map(x => x.bytes)
+
+  };
+
+  resistanceCaptures.push(capture);
+
+  document.getElementById(
+    "resistanceResult"
+  ).textContent =
+    "Captured level "
+    + target
+    + " ✓\n"
+    + "Reported resistance: "
+    + currentResistance;
+
+
+  resistanceIndex++;
+
+  if (resistanceIndex >= resistanceTargets.length) {
+
     document.getElementById(
-      "step" + i
+      "resistanceResult"
+    ).textContent +=
+      "\n\nResistance sweep complete ✓";
+
+    showStep(4);
+
+    runTimer(
+      30,
+      "normalTimer",
+      "normalProgress",
+      () => {
+
+        showStep(5);
+
+        waitForStop(
+          "stopIndicator",
+          () => {
+
+            showStep(6);
+
+            runTimer(
+              15,
+              "hardTimer",
+              "hardProgress",
+              () => {
+
+                const normal =
+                  average(normalPower);
+
+                const hard =
+                  average(hardPower);
+
+                document.getElementById(
+                  "hardResult"
+                ).innerHTML =
+                  "Normal average: <strong>"
+                  + Math.round(normal)
+                  + " W</strong><br><br>"
+                  + "Hard average: <strong>"
+                  + Math.round(hard)
+                  + " W</strong>";
+
+                showStep(7);
+
+                waitForStop(
+                  "finalStop",
+                  finishTest
+                );
+
+              }
+            );
+
+          }
+        );
+
+      }
     );
 
-    if (step) {
-
-      step.classList.add("hidden");
-      step.classList.remove("active");
-
-    }
+    return;
 
   }
 
 
-  const selected =
+  const next =
+    resistanceTargets[resistanceIndex];
+
   document.getElementById(
-    "step" + number
-  );
+    "resistanceTarget"
+  ).textContent =
+    next;
 
-  if (selected) {
-
-    selected.classList.remove("hidden");
-    selected.classList.add("active");
-
-    selected.scrollIntoView({
-      behavior:"smooth",
-      block:"center"
-    });
-
-  }
+  document.getElementById(
+    "resistanceResult2"
+  ).textContent =
+    "Now set the bike to "
+    + next
+    + " and capture it.";
 
 }
 
 
-/* =========================================
-   TIMER
-========================================= */
+/* =====================================================
+   STOP DETECTION
+===================================================== */
 
-function runTimer(
-  seconds,
-  display,
-  progress,
+function waitForStop(
+  displayId,
   callback
 ) {
 
-  let remaining =
-  seconds;
+  const started =
+    Date.now();
+
+  function check() {
+
+    const stopped =
+      currentRPM < 2 &&
+      Math.abs(currentPower) < 5;
+
+    document.getElementById(
+      displayId
+    ).textContent =
+      stopped
+      ? "✓ STOP DETECTED"
+      : "Still moving…";
+
+    if (stopped) {
+
+      callback();
+
+      return;
+
+    }
+
+    if (
+      Date.now() - started >
+      120000
+    ) {
+
+      document.getElementById(
+        displayId
+      ).textContent =
+      "Still waiting…";
+
+    }
+
+    setTimeout(check,250);
+
+  }
+
+  check();
+
+}
+
+
+/* =====================================================
+   TIMER
+===================================================== */
+
+function runTimer(
+  seconds,
+  displayId,
+  progressId,
+  callback
+) {
 
   const start =
-  Date.now();
+    Date.now();
 
   function tick() {
 
     const elapsed =
-    (Date.now() - start) / 1000;
+      (Date.now() - start) / 1000;
 
-    remaining =
-    Math.max(
-      0,
-      seconds - elapsed
-    );
+    const remaining =
+      Math.max(
+        0,
+        seconds - elapsed
+      );
 
     document.getElementById(
-      display
+      displayId
     ).textContent =
-    Math.ceil(remaining);
+      Math.ceil(remaining);
 
     document.getElementById(
-      progress
+      progressId
     ).style.width =
-    (
-      (elapsed / seconds) * 100
-    ) + "%";
-
+      Math.min(
+        100,
+        elapsed / seconds * 100
+      ) + "%";
 
     if (remaining <= 0) {
 
@@ -853,300 +1134,122 @@ function runTimer(
 }
 
 
-/* =========================================
-   STOP DETECTION
-========================================= */
+/* =====================================================
+   BASELINE
+===================================================== */
 
-function waitForStop(
-  display,
-  callback
-) {
+document.getElementById(
+"baselineButton"
+).onclick = () => {
 
-  const started =
-  Date.now();
+  const now =
+    Date.now();
 
-  function check() {
+  baselineCapture = {
 
-    const stopped =
-    currentRPM < 2 &&
-    currentPower < 5;
+    time: now,
 
-    if (stopped) {
+    telemetry: {
 
-      document.getElementById(
-        display
-      ).textContent =
-      "✓ STOP DETECTED";
+      rpm: currentRPM,
 
-      callback();
+      power: currentPower,
 
-      return;
+      speed: currentSpeed,
 
-    }
+      distance: currentDistance,
 
+      resistance: currentResistance
 
-    if (
-      Date.now() - started
-      > 120000
-    ) {
+    },
 
-      document.getElementById(
-        display
-      ).textContent =
-      "Still waiting...";
+    packets:
+      rawPackets
+        .filter(
+          p =>
+            now - p.time < 5000
+        )
+        .map(x => x.bytes)
 
-    }
+  };
 
 
-    requestAnimationFrame(check);
+  sessionStarted =
+    Date.now();
 
-  }
+  startSessionTimer();
 
-  check();
+  showStep(2);
 
-}
+};
 
 
-/* =========================================
-   TEST FLOW
-========================================= */
+/* =====================================================
+   RESISTANCE BUTTONS
+===================================================== */
 
-function startTest() {
+document.getElementById(
+"captureResistance"
+).onclick = captureResistance;
 
-  testRunning = true;
 
-  normalPowerSamples = [];
+document.getElementById(
+"captureResistance2"
+).onclick = captureResistance;
 
-  showStep(1);
 
-
-  runTimer(
-    30,
-    "timer1",
-    "progress1",
-    () => {
-
-      document
-      .getElementById("step1")
-      .classList.add("complete");
-
-      showStep(2);
-
-      waitForStop(
-        "stopStatus",
-        () => {
-
-          showStep(3);
-
-          runTimer(
-            20,
-            "timer3",
-            "progress3",
-            () => {
-
-              showStep(4);
-
-              pushPowerSamples = [];
-
-              runTimer(
-                15,
-                "timer4",
-                "progress4",
-                () => {
-
-                  const normal =
-                  average(
-                    normalPowerSamples
-                  );
-
-                  const push =
-                  average(
-                    pushPowerSamples
-                  );
-
-                  document.getElementById(
-                    "normalPower"
-                  ).textContent =
-                  Math.round(normal)
-                  + " W";
-
-                  document.getElementById(
-                    "pushPower"
-                  ).textContent =
-                  Math.round(push)
-                  + " W";
-
-
-                  if (
-                    push >
-                    normal * 1.15
-                  ) {
-
-                    document.getElementById(
-                      "effortResult"
-                    ).textContent =
-                    "🔥 CLEAR EFFORT INCREASE DETECTED";
-
-                  } else {
-
-                    document.getElementById(
-                      "effortResult"
-                    ).textContent =
-                    "Effort increase was small — that's okay.";
-
-                  }
-
-
-                  showStep(5);
-
-                  waitForStop(
-                    "finalStop",
-                    () => {
-
-                      finishTest();
-
-                    }
-                  );
-
-                }
-              );
-
-            }
-          );
-
-        }
-      );
-
-    }
-  );
-
-}
-
-
-/* =========================================
-   AVERAGE
-========================================= */
-
-function average(values) {
-
-  if (!values.length) {
-
-    return 0;
-
-  }
-
-  return (
-    values.reduce(
-      (a,b) => a+b,
-      0
-    )
-    /
-    values.length
-  );
-
-}
-
-
-/* =========================================
-   COMPLETE
-========================================= */
-
-function finishTest() {
-
-  testRunning = false;
-
-  document.getElementById(
-    "complete"
-  ).classList.remove("hidden");
-
-  document.getElementById(
-    "complete"
-  ).scrollIntoView({
-    behavior:"smooth"
-  });
-
-  log("");
-  log("====================");
-  log("TEST COMPLETE");
-  log("====================");
-
-  log(
-    "Normal power average: "
-    + Math.round(
-      average(normalPowerSamples)
-    )
-    + " W"
-  );
-
-  log(
-    "Push power average: "
-    + Math.round(
-      average(pushPowerSamples)
-    )
-    + " W"
-  );
-
-}
-
-
-/* =========================================
+/* =====================================================
    CONNECT
-========================================= */
+===================================================== */
 
 document.getElementById(
 "connect"
-).onclick = async () => {
+).onclick =
+async () => {
 
   try {
 
-    logEl.textContent = "";
+    document.getElementById(
+      "connectionStatus"
+    ).textContent =
+      "Looking for bike…";
 
-    statusEl.textContent =
-    "Looking for bike...";
 
+    device =
+      await navigator.bluetooth.requestDevice({
 
-    const device =
-    await navigator.bluetooth
-    .requestDevice({
+        filters: [
+          {
+            services: [FTMS]
+          }
+        ]
 
-      filters: [
-        {
-          services: [FTMS]
-        }
-      ]
-
-    });
+      });
 
 
     log(
-      "Device: "
+      "DEVICE: "
       + device.name
     );
 
 
-    statusEl.textContent =
-    "Connecting...";
+    server =
+      await device.gatt.connect();
 
 
-    const server =
-    await device.gatt.connect();
+    service =
+      await server
+        .getPrimaryService(FTMS);
 
 
-    const service =
-    await server
-    .getPrimaryService(FTMS);
+    document.getElementById(
+      "connectionStatus"
+    ).textContent =
+      "CONNECTED ✓ "
+      + device.name;
 
 
-    connected = true;
-
-
-    statusEl.textContent =
-    "CONNECTED ✓";
-
-
-    log(
-      "FTMS connected."
-    );
+    log("FTMS connected.");
 
 
     /* FEATURES */
@@ -1154,13 +1257,11 @@ document.getElementById(
     try {
 
       const c =
-      await service
-      .getCharacteristic(
-        FEATURES
-      );
+        await service
+          .getCharacteristic(FEATURES);
 
       const v =
-      await c.readValue();
+        await c.readValue();
 
       log(
         "FEATURES: "
@@ -1170,7 +1271,7 @@ document.getElementById(
     } catch(e) {
 
       log(
-        "Features unavailable: "
+        "FEATURES ERROR: "
         + e.message
       );
 
@@ -1182,39 +1283,31 @@ document.getElementById(
     try {
 
       const c =
-      await service
-      .getCharacteristic(
-        RESISTANCE_RANGE
-      );
+        await service
+          .getCharacteristic(
+            RESISTANCE_RANGE
+          );
 
       const v =
-      await c.readValue();
-
-
-      const min =
-      v.getInt16(0,true) / 10;
-
-      const max =
-      v.getInt16(2,true) / 10;
-
-      const inc =
-      v.getUint16(4,true) / 10;
-
+        await c.readValue();
 
       log(
-        "RESISTANCE RANGE: "
-        + min
-        + " → "
-        + max
-        + " ("
-        + inc
-        + ")"
+        "RESISTANCE RANGE RAW: "
+        + hex(v.buffer)
+      );
+
+      log(
+        "MIN RAW: "
+        + v.getInt16(0,true)
+        + " / MAX RAW: "
+        + v.getInt16(2,true)
       );
 
     } catch(e) {
 
       log(
-        "Resistance range unavailable."
+        "RESISTANCE RANGE ERROR: "
+        + e.message
       );
 
     }
@@ -1223,10 +1316,8 @@ document.getElementById(
     /* BIKE DATA */
 
     const bikeData =
-    await service
-    .getCharacteristic(
-      BIKE_DATA
-    );
+      await service
+        .getCharacteristic(BIKE_DATA);
 
 
     bikeData.addEventListener(
@@ -1241,12 +1332,10 @@ document.getElementById(
     );
 
 
-    await bikeData
-    .startNotifications();
-
+    await bikeData.startNotifications();
 
     log(
-      "Live bike data enabled."
+      "LIVE BIKE DATA ENABLED."
     );
 
 
@@ -1254,82 +1343,70 @@ document.getElementById(
 
     try {
 
-      const c =
-      await service
-      .getCharacteristic(
-        STATUS
-      );
+      const statusChar =
+        await service
+          .getCharacteristic(STATUS);
 
-
-      await c.startNotifications();
-
-
-      c.addEventListener(
+      statusChar.addEventListener(
         "characteristicvaluechanged",
-        event => {
-
-          log(
-            "STATUS: "
-            + hex(
-              event.target
-              .value.buffer
-            )
-          );
-
-        }
+        handleStatus
       );
 
+      await statusChar.startNotifications();
 
       log(
-        "Fitness Machine Status enabled."
+        "FITNESS MACHINE STATUS ENABLED."
       );
 
     } catch(e) {
 
       log(
-        "Status unavailable."
+        "STATUS ERROR: "
+        + e.message
       );
 
     }
 
 
-    /* CONTROL POINT */
+    /* CONTROL POINT — DETECT ONLY */
 
     try {
 
       await service
-      .getCharacteristic(
-        CONTROL_POINT
+        .getCharacteristic(
+          CONTROL_POINT
+        );
+
+      log(
+        "CONTROL POINT DETECTED."
       );
 
       log(
-        "Control Point detected."
-      );
-
-      log(
-        "NO CONTROL COMMANDS SENT."
+        "NO CONTROL COMMANDS WILL BE SENT."
       );
 
     } catch(e) {
 
       log(
-        "Control Point unavailable."
+        "CONTROL POINT NOT AVAILABLE."
       );
 
     }
 
 
-    /* START TEST */
+    await requestWakeLock();
 
-    startTest();
+    document.getElementById(
+      "baselineButton"
+    ).disabled = false;
 
 
   } catch(error) {
 
-    connected = false;
-
-    statusEl.textContent =
-    "Connection failed";
+    document.getElementById(
+      "connectionStatus"
+    ).textContent =
+      "Connection failed";
 
     log(
       error.name
@@ -1342,75 +1419,128 @@ document.getElementById(
 };
 
 
-/* =========================================
-   COPY RESULTS
-========================================= */
+/* =====================================================
+   FINISH
+===================================================== */
+
+function finishTest() {
+
+  document.getElementById(
+    "finalStop"
+  ).textContent =
+    "✓ STOP DETECTED";
+
+  showStep("complete");
+
+}
+
+
+/* =====================================================
+   AVERAGE
+===================================================== */
+
+function average(values) {
+
+  if (!values.length) return 0;
+
+  return values.reduce(
+    (a,b) => a+b,
+    0
+  ) / values.length;
+
+}
+
+
+/* =====================================================
+   COPY EVERYTHING
+===================================================== */
 
 document.getElementById(
-"copy"
-).onclick = async () => {
+"copyResults"
+).onclick =
+async () => {
 
-  const results =
+  let output =
+`SM-120 FINAL BIKE LAB
 
-`SM-120 DIAGNOSTIC RESULTS
+DEVICE
+${device?.name || "Unknown"}
 
-Normal power average:
-${Math.round(
-  average(normalPowerSamples)
-)} W
+LIVE DATA AT END
+RPM: ${currentRPM}
+Power: ${currentPower} W
+Speed: ${currentSpeed} km/h
+Distance: ${currentDistance} m
+Reported resistance: ${currentResistance}
+Session time: ${
+  sessionStarted
+  ? formatTime(
+      Math.floor(
+        (Date.now()-sessionStarted)/1000
+      )
+    )
+  : "unknown"
+}
 
-Push power average:
-${Math.round(
-  average(pushPowerSamples)
-)} W
+NORMAL POWER
+${Math.round(average(normalPower))} W
 
-CURRENT TELEMETRY
+HARD POWER
+${Math.round(average(hardPower))} W
 
-RPM:
-${currentRPM}
+BASELINE
+${JSON.stringify(
+  baselineCapture,
+  null,
+  2
+)}
 
-Speed:
-${currentSpeed} km/h
+RESISTANCE CAPTURES
+${JSON.stringify(
+  resistanceCaptures,
+  null,
+  2
+)}
 
-Power:
-${currentPower} W
+RAW BIKE PACKETS
+${rawPackets
+  .map(
+    p =>
+      new Date(p.time).toISOString()
+      + " | "
+      + p.bytes
+  )
+  .join("\n")}
 
-Distance:
-${currentDistance} m
-
-RAW DIAGNOSTIC LOG
-
-${logEl.textContent}
+FITNESS MACHINE STATUS PACKETS
+${statusPackets
+  .map(
+    p =>
+      new Date(p.time).toISOString()
+      + " | "
+      + p.bytes
+  )
+  .join("\n")}
 `;
 
 
   try {
 
-    await navigator.clipboard
-    .writeText(results);
-
+    await navigator.clipboard.writeText(output);
 
     document.getElementById(
-      "copy"
+      "copyStatus"
     ).textContent =
-    "COPIED ✓";
-
-
-    setTimeout(() => {
-
-      document.getElementById(
-        "copy"
-      ).textContent =
-      "COPY RESULTS";
-
-    }, 2000);
-
+      "COPIED ✓ Bring that text back to ChatGPT.";
 
   } catch(e) {
 
-    alert(
-      "Copy failed. Select and copy the log manually."
-    );
+    document.getElementById(
+      "copyStatus"
+    ).textContent =
+      "Copy failed. Select the diagnostic text manually.";
+
+    console.log(output);
 
   }
 
