@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SM-120 Bluetooth Test</title>
+
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 30px 20px;
+      background: #111;
+      color: #fff;
+    }
+
+    button {
+      font-size: 20px;
+      padding: 16px 24px;
+      border: 0;
+      border-radius: 12px;
+      margin: 10px 0;
+      cursor: pointer;
+    }
+
+    #connect {
+      background: #fff;
+      color: #111;
+    }
+
+    #status {
+      font-size: 18px;
+      margin: 20px 0;
+    }
+
+    pre {
+      background: #222;
+      padding: 15px;
+      border-radius: 10px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>🚲 SM-120 Bluetooth Test</h1>
+
+  <p>
+    This page connects to the bike and reports the Bluetooth services
+    it exposes.
+  </p>
+
+  <button id="connect">Connect to Bike</button>
+
+  <div id="status">Not connected</div>
+
+  <h2>Results</h2>
+  <pre id="output">Nothing yet.</pre>
+
+<script>
+
+const status = document.getElementById("status");
+const output = document.getElementById("output");
+const button = document.getElementById("connect");
+
+function log(message) {
+  output.textContent += message + "\n";
+  console.log(message);
+}
+
+button.addEventListener("click", async () => {
+
+  output.textContent = "";
+  status.textContent = "Looking for your bike...";
+
+  try {
+
+    const device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: [
+        "fitness_machine",
+        "device_information",
+        "battery_service",
+        "cycling_power"
+      ]
+    });
+
+    log("Device found:");
+    log("Name: " + (device.name || "Unknown"));
+    log("ID: " + device.id);
+
+    status.textContent = "Connecting...";
+
+    const server = await device.gatt.connect();
+
+    status.textContent = "Connected!";
+
+    log("");
+    log("GATT server connected.");
+    log("");
+    log("Discovering services...");
+
+    const services = await server.getPrimaryServices();
+
+    log("");
+    log("PRIMARY SERVICES FOUND: " + services.length);
+    log("");
+
+    for (const service of services) {
+
+      log("SERVICE");
+      log("UUID: " + service.uuid);
+
+      try {
+
+        const characteristics =
+          await service.getCharacteristics();
+
+        log("Characteristics: " + characteristics.length);
+
+        for (const characteristic of characteristics) {
+
+          log("  CHARACTERISTIC");
+          log("  UUID: " + characteristic.uuid);
+          log(
+            "  Properties: " +
+            JSON.stringify(characteristic.properties)
+          );
+        }
+
+      } catch (error) {
+
+        log("  Could not inspect characteristics: " + error);
+
+      }
+
+      log("");
+    }
+
+    log("========== DONE ==========");
+
+  } catch (error) {
+
+    status.textContent = "Error";
+
+    log("");
+    log("ERROR:");
+    log(error.name + ": " + error.message);
+
+  }
+
+});
+
+</script>
+
+</body>
+</html>
