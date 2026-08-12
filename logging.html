@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Briar Glen — Bike Logging</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101411;color:#f5f1e7;font-family:system-ui,-apple-system,sans-serif}main{max-width:760px;margin:auto;padding:14px 14px 60px}h1{margin:0 0 4px}.muted{color:#aab5aa}.card{background:#1a221c;border:1px solid #2b392e;border-radius:16px;padding:14px;margin-top:12px}button{width:100%;min-height:58px;border:0;border-radius:13px;margin-top:8px;font-size:17px;font-weight:800;background:#eee;color:#111}button.alt{background:#303b32;color:#fff}.status{padding:11px;border-radius:10px;background:#111711;margin-top:10px}.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}.stat{background:#111711;border-radius:10px;padding:10px}.label{font-size:10px;color:#aab5aa}.value{font-size:24px;font-weight:800}pre{background:#0d110e;border-radius:10px;padding:10px;max-height:420px;overflow:auto;white-space:pre-wrap;word-break:break-word;font-size:11px}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}a{color:#e7bd68}.wake{margin-top:8px;color:#a7d99f}
+</style></head><body><main>
+<h1>🚲 Bike Logging</h1><div class="muted">Troubleshooting only. This is not part of the game.</div>
+<div class="card"><button id="connect">CONNECT TO BIKE</button><div id="status" class="status">Not connected</div><div class="wake" id="wake">Screen wake lock: checking…</div></div>
+<div class="card"><h2>Live telemetry</h2><div class="stats"><div class="stat"><div class="label">RPM</div><div class="value" id="rpm">—</div></div><div class="stat"><div class="label">POWER</div><div class="value" id="power">—</div></div><div class="stat"><div class="label">SPEED</div><div class="value" id="speed">—</div></div><div class="stat"><div class="label">DISTANCE</div><div class="value" id="distance">—</div></div><div class="stat"><div class="label">RESISTANCE</div><div class="value" id="resistance">—</div></div><div class="stat"><div class="label">SESSION</div><div class="value" id="elapsed">00:00</div></div></div></div>
+<div class="card"><div class="row"><button class="alt" id="copy">COPY DIAGNOSTICS</button><button class="alt" id="clear">CLEAR LOG</button></div><pre id="log">Waiting for connection…</pre></div>
+<div class="card"><a href="index.html">← Back to Briar Glen</a></div>
+</main>
+<script type="module">
+import {BikeEngine} from './js/bike.js';
+const bike=new BikeEngine(),$=id=>document.getElementById(id);let start=0,lines=[];
+function add(x){lines.push(new Date().toLocaleTimeString()+' · '+x);if(lines.length>500)lines.shift();$('log').textContent=lines.join('\n');$('log').scrollTop=$('log').scrollHeight}
+function fmt(m){return m<1000?Math.round(m)+' m':(m/1000).toFixed(2)+' km'}
+bike.subscribe(s=>{$('status').textContent=s.connected?'● Connected: '+s.name:'○ Disconnected';$('connect').disabled=s.connected;$('rpm').textContent=Math.round(s.rpm);$('power').textContent=Math.round(s.power)+' W';$('speed').textContent=s.speed.toFixed(1)+' km/h';$('distance').textContent=fmt(Math.max(0,s.distance-start));$('resistance').textContent=s.resistance==null?'—':Math.round(s.resistance);if(s.lastPacketAt)add('telemetry · rpm '+Math.round(s.rpm)+' · power '+Math.round(s.power)+' W · speed '+s.speed.toFixed(1)+' · distance '+fmt(s.distance)+' · resistance '+(s.resistance??'—'))});
+$('connect').onclick=async()=>{try{await bike.connect();start=bike.state.distance;await requestWake();add('CONNECTED · '+bike.state.name)}catch(e){add('ERROR · '+e.message)}};
+async function requestWake(){if(!('wakeLock'in navigator)){$('wake').textContent='Screen wake lock unavailable';return}try{await navigator.wakeLock.request('screen');$('wake').textContent='🔒 Screen wake lock active'}catch(e){$('wake').textContent='Wake lock failed: '+e.message}}
+$('copy').onclick=async()=>{const text='BIKE DIAGNOSTICS\n'+lines.join('\n')+'\n\nCURRENT\nRPM: '+bike.state.rpm+'\nPower: '+bike.state.power+' W\nSpeed: '+bike.state.speed+' km/h\nDistance: '+bike.state.distance+' m\nResistance: '+bike.state.resistance;await navigator.clipboard.writeText(text);$('copy').textContent='COPIED ✓';setTimeout(()=>$('copy').textContent='COPY DIAGNOSTICS',1500)};
+$('clear').onclick=()=>{lines=[];$('log').textContent='Log cleared.'};
+setInterval(()=>{$('elapsed').textContent=clock()},500);const session=Date.now();function clock(){let s=Math.floor((Date.now()-session)/1000);return Math.floor(s/60).toString().padStart(2,'0')+':'+(s%60).toString().padStart(2,'0')}
+</script></body></html>
