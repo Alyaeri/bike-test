@@ -14,18 +14,31 @@ jobs:
       id-token: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Copy site files
+      - name: Prepare site
+        env:
+          BUILD_SHA: ${{ github.sha }}
+          BUILD_TIME: ${{ github.event.head_commit.timestamp }}
         run: |
           mkdir site
           rsync -av --exclude='.git' --exclude='.github' --exclude='.gitignore' --exclude='node_modules' ./ site/
+          printf 'window.__BUILD_INFO__ = {sha: "%s", builtAt: "%s"};\n' "$BUILD_SHA" "$BUILD_TIME" > site/build-info.js
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('site/index.html')
+          s=p.read_text()
+          marker='<script src="./build-info.js"></script><script src="./qa-patch.js"></script>'
+          if marker not in s:
+              s=s.replace('</body>', marker+'\n</body>')
+          p.write_text(s)
+          PY
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
       - name: Upload artifact for GitHub Pages
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: ./site
 
